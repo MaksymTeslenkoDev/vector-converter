@@ -1,0 +1,22 @@
+services:
+  vectorize-mysql:
+    image: mysql:8.0
+    container_name: vector-converter-mysql
+    command: --log-bin
+      --server-id=1
+    ports:
+      - '3307:3306'
+    env_file:
+      - .env
+    volumes:
+      - vector-converter_mysql-data:/var/lib/mysql
+      - ./db/init.sql:/docker-entrypoint-initdb.d/db.init.sql
+    networks:
+      - vector-converter_network
+
+volumes:
+  vector-converter_mysql-data:
+
+networks:
+  vector-converter_network:
+    driver: bridge

@@ -1,0 +1,13 @@
+{
+  "compilerOptions": {
+    "checkJs": true,
+    "allowJs": true,
+    "noEmit": true,
+    "moduleResolution": "node",
+    "resolveJsonModule": true,
+    "target": "esnext",
+    "baseUrl": "./"
+  },
+  "include": ["**/*.js", "**/*.d.ts"],
+  "exclude": ["**/*.json"]
+}

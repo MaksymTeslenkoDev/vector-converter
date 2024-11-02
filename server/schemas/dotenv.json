@@ -1,0 +1,31 @@
+{
+  "type": "object",
+  "$id": "schema:dotenv",
+  "required": ["MYSQL_DB", "MYSQL_PORT", "MYSQL_USER", "MYSQL_USER_PASS"],
+  "properties": {
+    "NODE_ENV": {
+      "type": "string",
+      "default": "development"
+    },
+    "PORT": {
+      "type": "integer",
+      "default": 8090
+    },
+    "MYSQL_HOST": {
+      "type": "string",
+      "default": "localhost"
+    },
+    "MYSQL_PORT":{
+      "type":"string"
+    },
+    "MYSQL_DB": {
+      "type": "string"
+    },
+    "MYSQL_USER": {
+      "type": "string"
+    },
+    "MYSQL_USER_PASS": {
+      "type": "string"
+    }
+  }
+}
