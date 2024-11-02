@@ -1,10 +1,9 @@
-// @ts-check
-
 'use strict';
 
 const fp = require('fastify-plugin');
 const fastifyMysql = require('@fastify/mysql');
-const migrate = require("../src/migrate");
+const path = require('node:path');
+const migrate = require('../src/migrate');
 
 module.exports = fp(
   async function (fastify, opts) {
@@ -14,12 +13,16 @@ module.exports = fp(
       port: fastify.secrets.MYSQL_PORT,
       database: fastify.secrets.MYSQL_DB,
       password: fastify.secrets.MYSQL_USER_PASS,
-      promise:true
+      promise: true,
     });
 
     const mysql = fastify.mysql;
 
-    await migrate(mysql,fastify.log)
+    await migrate({
+      pool: mysql,
+      log: fastify.log,
+      migrationsPath: path.join(__dirname, '..', 'migrations'),
+    });
   },
   {
     dependencies: ['application-config'],

@@ -1,31 +1,34 @@
-const fs = require('node:fs');
+const fsp = require('node:fs').promises;
 const path = require('path');
 
-async function migrate(pool, log) {
-  log.info('Starting migration process...');
+async function migrate({ pool, log, migrationsPath }) {
+  try {
+    log.info('Starting migration process...');
 
-  const [migrationTable] = await pool.query('SHOW TABLES LIKE "migration"');
-  if (migrationTable.length === 0) {
-    await createMigrationTable(pool, log);
-  }
-
-  const migrations = await loadMigrations(log);
-
-  const [appliedMigrations] = await pool.query('SELECT num FROM migration');
-  const migrated = appliedMigrations.reduce((acc, { num }) => {
-    acc[num] = true;
-    return acc;
-  }, {});
-
-  for (const item of migrations) {
-    if (migrated[item.num]) {
-      log.info(`Migration ${item.num} already applied. Skipping.`);
-      continue;
+    const [migrationTable] = await pool.query('SHOW TABLES LIKE "migration"');
+    if (migrationTable.length === 0) {
+      await createMigrationTable(pool, log);
     }
-    await replay(pool, log, item);
-  }
 
-  log.info('Migration process completed.');
+    const migrations = await loadMigrations(migrationsPath);
+
+    const [appliedMigrations] = await pool.query('SELECT num FROM migration');
+    const migrated = appliedMigrations.reduce((acc, { num }) => {
+      acc[num] = true;
+      return acc;
+    }, {});
+
+    for (const item of migrations) {
+      if (migrated[item.num]) {
+        continue;
+      }
+      await replay(pool, log, item);
+    }
+
+    log.info('Migration process completed.');
+  } catch (e) {
+    log.error('Error while doing migrations');
+  }
 }
 
 async function createMigrationTable(pool, log) {
@@ -38,53 +41,41 @@ async function createMigrationTable(pool, log) {
   `);
 }
 
-function loadMigrations(log) {
-  return new Promise((resolve, reject) => {
-    const migrationsDir = path.join(__dirname, '..', 'migrations');
-    fs.readdir(migrationsDir, (err, files) => {
-      if (err) {
-        log.error('Error reading migrations directory:', err);
-        return reject(err);
-      }
+async function loadMigrations(migrationsPath) {
+  const files = await fsp.readdir(migrationsPath, { withFileTypes: true });
+  const migrations = [];
 
-      try {
-        const migrations = files
-          .filter((file) => file.endsWith('.sql'))
-          .map((file) => {
-            let idx = file.indexOf('-');
-            if (idx === -1) idx = file.indexOf('.');
+  for (let file of files) {
+    const { name } = file;
+    if (file.isFile() && !name.endsWith('.sql')) continue;
+    const idx = name.indexOf('-');
+    if (idx < 0) throw new Error('Wrong migration file name');
 
-            const num = parseInt(file.substring(0, idx), 10);
-            if (isNaN(num)) {
-              throw new Error(`Invalid migration number in file: ${file}`);
-            }
+    const num = parseInt(name.substring(0, idx), 10);
+    if (isNaN(num)) {
+      throw new Error(`Invalid migration number in file: ${file}`);
+    }
 
-            return {
-              num,
-              upFilePath: path.resolve(migrationsDir, file),
-            };
-          });
-
-        migrations.sort((a, b) => {
-          if (a.num === b.num) {
-            throw new Error(`Duplicate migration number ${a.num}`);
-          }
-          return a.num - b.num;
-        });
-
-        resolve(migrations);
-      } catch (e) {
-        log.error('Error processing migrations:', e);
-        reject(e);
-      }
+    migrations.push({
+      num,
+      upFilePath: path.resolve(migrationsPath, name),
     });
+  }
+
+  migrations.sort((a, b) => {
+    if (a.num === b.num) {
+      throw new Error(`Duplicate migration number ${a.num}`);
+    }
+    return a.num - b.num;
   });
+
+  return migrations;
 }
 
 async function replay(pool, log, migration) {
   log.info(`Executing migration ${migration.num}`);
 
-  const migrationSql = await readFileAsync(migration.upFilePath, 'utf8');
+  const migrationSql = await fsp.readFile(migration.upFilePath, 'utf8');
   const sanitizedSql = removeSqlComments(migrationSql);
 
   await pool.query(sanitizedSql);
@@ -94,15 +85,6 @@ async function replay(pool, log, migration) {
   );
 
   log.info(`Migration ${migration.num} applied successfully.`);
-}
-
-function readFileAsync(filePath, encoding) {
-  return new Promise((resolve, reject) => {
-    fs.readFile(filePath, encoding, (err, data) => {
-      if (err) reject(err);
-      else resolve(data);
-    });
-  });
 }
 
 function removeSqlComments(sql) {
