@@ -25,8 +25,7 @@ module.exports = fp(async function uploadHooks(fastify, opts) {
         .send({ error: 'Only JPG and PNG formats are allowed' });
     }
 
-    // @ts-ignore
-    request.data = data;
+    request.multipartData = data
   });
 });
 

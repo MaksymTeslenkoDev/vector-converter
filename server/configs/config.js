@@ -17,6 +17,13 @@ module.exports = fp(
         promise: true,
         enableKeepAlive: true,
       },
+      s3: {
+        region: fastify.secrets.AWS_REGION,
+        credentials: {
+          secretAccessKey: fastify.secrets.AWS_SECRET_ACCESS_KEY,
+          accessKeyId: fastify.secrets.AWS_ACCESS_KEY,
+        },
+      },
     });
   },
   { name: 'application-config' },
