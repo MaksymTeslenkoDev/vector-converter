@@ -6,18 +6,13 @@ const path = require('node:path');
 const migrate = require('../src/migrate');
 
 module.exports = fp(
+  /**
+   * @param {import('fastify').FastifyInstance} fastify - The Fastify instance.
+   * @param {import('../app').AppOptions} opts - The options passed to the plugin.
+   */
   async function (fastify, opts) {
-    await fastify.register(fastifyMysql, {
-      host: fastify.secrets.MYSQL_HOST,
-      user: fastify.secrets.MYSQL_USER,
-      port: fastify.secrets.MYSQL_PORT,
-      database: fastify.secrets.MYSQL_DB,
-      password: fastify.secrets.MYSQL_USER_PASS,
-      promise: true,
-    });
-
+    await fastify.register(fastifyMysql, opts.mysql);
     const mysql = fastify.mysql;
-
     await migrate({
       pool: mysql,
       log: fastify.log,
