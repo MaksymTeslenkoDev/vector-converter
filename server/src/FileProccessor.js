@@ -27,7 +27,7 @@ class FileStore {
 }
 
 class S3FileStore extends FileStore {
-  constructor({bucketName, options}) {
+  constructor({ bucketName, options }) {
     super();
     this.provider = new S3Client(options);
     this.bucketName = bucketName;
@@ -75,6 +75,7 @@ class S3FileStore extends FileStore {
 
 class FileProccessor {
   #objectStore;
+
   constructor(storeProvider) {
     this.#objectStore = storeProvider;
   }
@@ -128,5 +129,5 @@ class MultipartFileProccessor extends FileProccessor {
 }
 
 module.exports = {
-  MultipartFileProccessor
+  MultipartFileProccessor,
 };

@@ -2,19 +2,61 @@ import '@fastify/mysql';
 import 'fastify';
 import { MySQLPool } from '@fastify/mysql';
 import { FastifyBaseLogger } from 'fastify';
-import * as fastifyMysql from '@fastify/mysql';
 import {
-  DeleteObjectCommandOutput,
-  PutObjectCommandOutput,
   S3ClientConfig,
+  PutObjectCommandOutput,
+  DeleteObjectCommandOutput,
 } from '@aws-sdk/client-s3';
-import * as fastifyMultipart from '@fastify/multipart';
 import { MultipartFile } from '@fastify/multipart';
 
+// Interface for the basic file storage provider
+export interface FileStore {
+  uploadFile(params: {
+    key: string;
+    file: MultipartFile;
+  }): Promise<PutObjectCommandOutput | unknown>;
+  getFile(params: { key: string }): Promise<Buffer>;
+  listFiles(params: { prefix: string }): Promise<string[]>;
+  deleteFile(params: {
+    key: string;
+  }): Promise<DeleteObjectCommandOutput | unknown>;
+}
+
+// Interface for S3-specific configuration options
+export interface S3FileStoreOptions {
+  bucketName: string;
+  options: {
+    region: string;
+    credentials: {
+      accessKeyId: string;
+      secretAccessKey: string;
+    };
+  };
+}
+
+// Typing for FileProcessor with Generics
+export interface FileProcessor<T extends FileStore> {
+  setObjectStoreProvider(objectStoreProvider: T): void;
+  uploadFile(params: {
+    key: string;
+    file: MultipartFile;
+  }): Promise<ReturnType<T['uploadFile']>>;
+  getFile(params: { key: string }): Promise<ReturnType<T['getFile']>>;
+  listFiles(params: { prefix: string }): Promise<ReturnType<T['listFiles']>>;
+  deleteFile(params: { key: string }): Promise<ReturnType<T['deleteFile']>>;
+  validateFile(filename: string): boolean;
+}
+
+// Specific implementation for a MultipartFile processor with S3
+export interface MultipartFileProcessor extends FileProcessor<FileStore> {
+  validateFile(filename: string): boolean;
+}
+
+// Fastify Instance Extension
 declare module 'fastify' {
   interface FastifyInstance {
     config: {
-      mysql: fastifyMysql.FastifyMySQLOptions;
+      mysql: import('@fastify/mysql').FastifyMySQLOptions;
       s3: S3ClientConfig;
     };
     mysql: MySQLPool;
@@ -30,26 +72,16 @@ declare module 'fastify' {
       AWS_SECRET_ACCESS_KEY: string;
       AWS_REGION: string;
     };
-    s3DataSource: {
-      uploadFile: ({
-        key,
-        file,
-      }: {
-        key: string;
-        file: fastifyMultipart.MultipartFile;
-      }) => Promise<PutObjectCommandOutput>;
-      getFile: ({key}:{key: string}) => Promise<Buffer>;
-      listFiles: ({prefix}:{prefix: string}) => Promise<string[]>;
-      deleteFile: ({key}:{key: string}) => Promise<DeleteObjectCommandOutput>;
-    };
+    s3DataSource: MultipartFileProcessor; // Typed s3DataSource as MultipartFileProcessor
   }
+
   interface FastifyRequest {
     multipartData?: MultipartFile;
   }
 }
 
 export interface AppOptions {
-  mysql: fastifyMysql.FastifyMySQLOptions;
+  mysql: import('@fastify/mysql').FastifyMySQLOptions;
   s3: S3ClientConfig;
 }
 
