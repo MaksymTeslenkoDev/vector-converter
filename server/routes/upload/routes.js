@@ -20,14 +20,17 @@ module.exports = async function uploadRoutes(fastify, opts) {
      * @param {import("fastify").FastifyReply} reply - The Fastify reply.
      */
     handler: async function uploadFormData(request, reply) {
-      const file = request.multipartData;
-      const fileName = crypto.randomUUID();
-      if (!file) {
+      const file = await request.file();
+      if (!file || !file.filename) {
         return reply.code(400).send({ error: 'No file provided' });
       }
+
+      const fileName = crypto.randomUUID();
+      
       const directory = 'origins';
       const filePath = `${directory}/${fileName}`;
-      const res = await fastify.s3DataSource.uploadFile(filePath, file);
+      const res = await fastify.s3DataSource.uploadFile({file,key:filePath});
+
       fastify.log.info('File uploaded to s3 %o', {
         s3RequestId: res.$metadata.requestId,
         fileName,

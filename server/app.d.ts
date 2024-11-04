@@ -28,16 +28,19 @@ declare module 'fastify' {
       MYSQL_USER_PASS: string;
       AWS_ACCESS_KEY: string;
       AWS_SECRET_ACCESS_KEY: string;
-      AWS_REGION:string;
+      AWS_REGION: string;
     };
     s3DataSource: {
-      uploadFile: (
-        key: string,
-        file: fastifyMultipart.MultipartFile,
-      ) => Promise<PutObjectCommandOutput>;
-      getFile: (key: string) => Promise<Buffer>;
-      listFiles: (prefix: string) => Promise<string[]>;
-      deleteFile: (key: string) => Promise<DeleteObjectCommandOutput>;
+      uploadFile: ({
+        key,
+        file,
+      }: {
+        key: string;
+        file: fastifyMultipart.MultipartFile;
+      }) => Promise<PutObjectCommandOutput>;
+      getFile: ({key}:{key: string}) => Promise<Buffer>;
+      listFiles: ({prefix}:{prefix: string}) => Promise<string[]>;
+      deleteFile: ({key}:{key: string}) => Promise<DeleteObjectCommandOutput>;
     };
   }
   interface FastifyRequest {
