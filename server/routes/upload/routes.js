@@ -20,11 +20,7 @@ module.exports = async function uploadRoutes(fastify, opts) {
      * @param {import("fastify").FastifyReply} reply - The Fastify reply.
      */
     handler: async function uploadFormData(request, reply) {
-      const file = await request.file();
-      if (!file || !file.filename) {
-        return reply.code(400).send({ error: 'No file provided' });
-      }
-
+      const file = request.multipartData;
       const fileName = crypto.randomUUID();
       
       const directory = 'origins';
