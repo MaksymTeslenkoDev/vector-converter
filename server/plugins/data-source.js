@@ -3,7 +3,7 @@
 const fp = require('fastify-plugin');
 const fastifyMysql = require('@fastify/mysql');
 const path = require('node:path');
-const migrate = require('../src/migrate');
+const migrate = require('../../src/migrate');
 
 module.exports = fp(
   /**

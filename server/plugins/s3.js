@@ -1,7 +1,7 @@
 'use strict';
 
 const fp = require('fastify-plugin');
-const { MultipartFileProccessor } = require('../src/FileProccessor');
+const { MultipartFileProccessor } = require('../../src/FileProccessor');
 
 module.exports = fp(
   /**

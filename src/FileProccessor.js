@@ -130,4 +130,5 @@ class MultipartFileProccessor extends FileProccessor {
 
 module.exports = {
   MultipartFileProccessor,
+  S3FileStore
 };
