@@ -3,7 +3,10 @@
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "copy:parent-resources": "rsync -avm --include='src/***' --include='utils/***' --include='package.json' --exclude='*' ../ dist",
+    "copy:resources": "rsync -avm --exclude='*.ts' --exclude node_modules  --filter=':- .deployignore' ./ dist",
+    "build": "rm -fr dist && mkdir dist && npm run copy:resources && npm run copy:parent-resources"
   },
   "author": "",
   "license": "ISC",

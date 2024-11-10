@@ -1,0 +1,9 @@
+node_modules
+*.ts
+../.git
+../db/
+../server/
+.vscode
+.env
+.dockerignore
+.parentbuildignore
