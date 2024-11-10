@@ -43,6 +43,9 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: lambda-dist
+      
+      - name: Verify lambda-dist directory
+        run: ls -R .
 
       - name: Install zip utility
         run: sudo apt-get install zip

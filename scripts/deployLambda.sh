@@ -20,6 +20,12 @@ if [ -z "$AWS_ACCESS_KEY_ID" ] || [ -z "$AWS_SECRET_ACCESS_KEY" ]; then
   exit 1
 fi
 
+# Verify if DIST_FOLDER exists
+if [ ! -d "$DIST_FOLDER" ]; then
+  echo "Error: Distribution folder '$DIST_FOLDER' does not exist."
+  exit 1
+fi
+
 # Package the Lambda function
 echo "Zipping Lambda function from '$DIST_FOLDER'..."
 zip -r $ZIP_FILE $DIST_FOLDER/*
