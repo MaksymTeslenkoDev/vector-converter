@@ -44,8 +44,8 @@ jobs:
       - name: Install zip utility
         run: sudo apt-get install zip
       
-      - name: Make deployLambda.sh executable
-        run: chmod +x ./scripts/deployLambda.sh
+      # - name: Make deployLambda.sh executable
+      #   run: chmod +x ./scripts/deployLambda.sh
 
       - name: Deploy Lambda function
         env:
