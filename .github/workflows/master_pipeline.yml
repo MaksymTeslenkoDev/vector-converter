@@ -36,6 +36,9 @@ jobs:
     runs-on: ubuntu-latest
     needs: build
     steps:
+      - name: Checkout code  # Ensures scripts/deployLambda.sh is available
+        uses: actions/checkout@v4
+
       - name: Download Lambda artifact
         uses: actions/download-artifact@v4
         with:
@@ -44,8 +47,8 @@ jobs:
       - name: Install zip utility
         run: sudo apt-get install zip
       
-      # - name: Make deployLambda.sh executable
-      #   run: chmod +x ./scripts/deployLambda.sh
+      - name: Make deployLambda.sh executable
+        run: chmod +x ./scripts/deployLambda.sh
 
       - name: Deploy Lambda function
         env:
