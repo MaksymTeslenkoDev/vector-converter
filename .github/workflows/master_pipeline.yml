@@ -19,6 +19,9 @@ jobs:
 
       - name: Install dependencies
         run: npm install
+      
+      - name: Make build.sh executable
+        run: chmod +x ./scripts/build.sh
 
       - name: Run build script
         run: ./scripts/build.sh
@@ -40,6 +43,9 @@ jobs:
 
       - name: Install zip utility
         run: sudo apt-get install zip
+      
+      - name: Make deploy_lambda.sh executable
+        run: chmod +x ./scripts/deployLambda.sh
 
       - name: Package Lambda function
         run: zip -r function.zip lambda-dist/*
