@@ -43,12 +43,12 @@ jobs:
 
       - name: Install zip utility
         run: sudo apt-get install zip
-      
-      - name: Make deploy_lambda.sh executable
-        run: chmod +x ./scripts/deployLambda.sh
 
       - name: Package Lambda function
         run: zip -r function.zip lambda-dist/*
+      
+      - name: Make deployLambda.sh executable
+        run: chmod +x ./scripts/deployLambda.sh
 
       - name: Deploy Lambda function
         env:
