@@ -9,7 +9,7 @@ module.exports = fp(
    * @param {import('../app').AppOptions} opts - The options passed to the plugin.
    */
   async function awsS3SdkWrapper(fastify, opts) {
-    const bucketName = 'vector-converter';
+    const bucketName = 'converter-bucket';
     fastify.decorate('s3DataSource', new MultipartFileProccessor({bucketName,options:opts.s3}));
   },
   {
