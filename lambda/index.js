@@ -2,7 +2,7 @@
 
 const {S3FileStore} = require('../src/FileProccessor');
 
-exports.handler = async (event) => {
+exports.handler = async (event) => { 
 
   const bucketName = 'vector-converter';
   const options = {
@@ -15,7 +15,6 @@ exports.handler = async (event) => {
 
   const s3FileStore = new S3FileStore({bucketName, options});
 
-  
   const response = {
     statusCode: 200,
     body: JSON.stringify({

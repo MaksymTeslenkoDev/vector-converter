@@ -5,10 +5,15 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "copy:parent-resources": "rsync -avm --include='src/***' --include='utils/***' --include='package.json' --exclude='*' ../ dist",
-    "copy:resources": "rsync -avm --exclude='*.ts' --exclude node_modules  --filter=':- .deployignore' ./ dist",
-    "build": "rm -fr dist && mkdir dist && npm run copy:resources && npm run copy:parent-resources"
+    "copy:resources": "rsync -avm --exclude='*.ts' --exclude node_modules  --filter=':- .deployignore' ./ dist/lambda",
+    "install:root-dependencies": "npm install --prefix dist",
+    "install:lambda-dependencies": "npm install --prefix dist/lambda",
+    "build": "rm -fr dist && mkdir -p dist/lambda && npm run copy:resources && npm run copy:parent-resources && npm run install:root-dependencies && npm run install:lambda-dependencies"
   },
   "author": "",
   "license": "ISC",
-  "description": ""
+  "description": "",
+  "dependencies": {
+    "potrace": "^2.1.8"
+  }
 }
