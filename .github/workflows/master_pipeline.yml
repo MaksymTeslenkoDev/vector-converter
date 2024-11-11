@@ -45,7 +45,7 @@ jobs:
       - name: Download Lambda artifact
         uses: actions/download-artifact@v4
         with:
-          name: lambda-dist
+          name: lambda-zip
       
       - name: Download Lambda zip artifact
         uses: actions/download-artifact@v4
