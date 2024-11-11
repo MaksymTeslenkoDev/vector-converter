@@ -27,7 +27,7 @@ jobs:
         run: ./scripts/build.sh
 
       - name: Create zip file for Lambda function
-        run: zip -r function.zip lambda/dist/*
+        run: cd lambda/dist && zip -r ../../function.zip . && cd ../../
 
       - name: Upload Lambda zip as artifact
         uses: actions/upload-artifact@v4
