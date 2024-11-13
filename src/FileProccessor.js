@@ -60,7 +60,7 @@ class S3FileStore extends FileStore {
       Bucket: this.bucketName,
       Prefix: prefix,
     });
-    const response = await this.bucketName.send(listObjectsCommand);
+    const response = await this.provider.send(listObjectsCommand);
     return response.Contents ? response.Contents.map((item) => item.Key) : [];
   }
 
