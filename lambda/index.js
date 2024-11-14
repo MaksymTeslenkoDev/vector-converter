@@ -1,29 +1,73 @@
 'use strict';
 
 const { S3FileStore } = require('../src/FileProccessor');
+const potrace = require('potrace');
+const { Jimp } = require('jimp');
 
 exports.handler = async (event) => {
-  console.log('event ', event);
-  const bucketName = 'converter-bucket';
-  const options = {
-    region: process.env.AWS_REGION,
-    credentials: {
-      secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
-      accessKeyId: process.env.AWS_ACCESS_KEY,
-    },
-  };
+  try {
+    const { fileName } = event;
+    if (!fileName) throw new Error('fileName is required');
+    const bucketName = 'converter-bucket';
+    const options = {
+      region: process.env.AWS_REGION,
+      credentials: {
+        secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
+        accessKeyId: process.env.AWS_ACCESS_KEY,
+      },
+    };
 
-  const s3FileStore = new S3FileStore({ bucketName, options });
+    const s3FileStore = new S3FileStore({ bucketName, options });
 
-  const files = await s3FileStore.listFiles(bucketName);
+    const fileBuffer = await s3FileStore.getFile({
+      key: `origins/${fileName}`,
+    });
 
-  const response = {
-    statusCode: 200,
-    body: JSON.stringify({
-      message: 'Hello from AWS Lambda!',
-      timestamp: new Date().toISOString(),
-    }),
-  };
+    const processedImageBuffer = await Jimp.fromBuffer(fileBuffer).then(
+      (image) => {
+        return image.getBuffer('image/png');
+      },
+    );
 
-  return response;
+    const res = await new Promise((resolve, reject) => {
+      let trace = new potrace.Potrace();
+      trace.setParameters({
+        threshold: 128,
+        color: '#880000',
+      });
+
+      trace.loadImage(processedImageBuffer, function (err) {
+        if (err) reject(err);
+
+        resolve({
+          svg: trace.getSVG(),
+          path: trace.getPathTag(),
+          symbol: trace.getSymbol('traced-image'),
+        });
+      });
+    });
+
+    await s3FileStore.uploadFile({
+      key: `converted/${fileName}`,
+      file: {
+        toBuffer: async () => Buffer.from(res.svg, 'utf-8'),
+        mimetype: 'image/svg+xml',
+        encoding: 'utf-8',
+      },
+    });
+
+    return fileName;
+  } catch (e) {
+    let statusCode = 500;
+    let errorMessage = 'Enternal error';
+    if (e instanceof Error) {
+      errorMessage = e.message;
+    }
+    return {
+      statusCode,
+      body: {
+        error: errorMessage,
+      },
+    };
+  }
 };
