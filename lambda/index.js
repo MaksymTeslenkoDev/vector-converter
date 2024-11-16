@@ -6,14 +6,21 @@ const { Jimp } = require('jimp');
 
 exports.handler = async (event) => {
   try {
-    const { fileName } = event;
+    let parsedBody;
+    if (typeof event.body === 'string') {
+      parsedBody = JSON.parse(event.body);
+    } else {
+      parsedBody = event;
+    }
+
+    const { fileName, ...potraceOptions } = parsedBody;
     if (!fileName) throw new Error('fileName is required');
     const bucketName = 'converter-bucket';
     const options = {
-      region: process.env.AWS_REGION,
+      region: process.env.AWS_PERSONAL_REGION,
       credentials: {
-        secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
-        accessKeyId: process.env.AWS_ACCESS_KEY,
+        secretAccessKey: process.env.AWS_PERSONAL_SECRET_ACCESS_KEY,
+        accessKeyId: process.env.AWS_PERSONAL_ACCESS_KEY,
       },
     };
 
@@ -31,10 +38,7 @@ exports.handler = async (event) => {
 
     const res = await new Promise((resolve, reject) => {
       let trace = new potrace.Potrace();
-      trace.setParameters({
-        threshold: 128,
-        color: '#880000',
-      });
+      trace.setParameters(potraceOptions);
 
       trace.loadImage(processedImageBuffer, function (err) {
         if (err) reject(err);
