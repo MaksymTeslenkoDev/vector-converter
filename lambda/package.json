@@ -14,7 +14,10 @@
   "license": "ISC",
   "description": "",
   "dependencies": {
+    "@sparticuz/chromium": "^131.0.0",
     "jimp": "^1.6.0",
-    "potrace": "^2.1.8"
+    "potrace": "^2.1.8",
+    "puppeteer": "^23.8.0",
+    "puppeteer-core": "^23.8.0"
   }
 }

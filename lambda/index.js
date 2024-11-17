@@ -1,19 +1,17 @@
 'use strict';
 
-const { S3FileStore } = require('../src/FileProccessor');
-const potrace = require('potrace');
 const { Jimp } = require('jimp');
+const potrace = require('potrace');
+const { S3FileStore } = require('../src/FileProccessor');
+const { canvasBuilder } = require('./src/Puppeteer');
 
 exports.handler = async (event) => {
   try {
-    let parsedBody;
-    if (typeof event.body === 'string') {
-      parsedBody = JSON.parse(event.body);
-    } else {
-      parsedBody = event;
-    }
+    let parsedBody =
+      typeof event.body === 'string' ? JSON.parse(event.body) : event;
 
-    const { fileName, ...potraceOptions } = parsedBody;
+    const { fileName, potraceOptions, canvasOptions } = parsedBody;
+
     if (!fileName) throw new Error('fileName is required');
     const bucketName = 'converter-bucket';
     const options = {
@@ -36,7 +34,7 @@ exports.handler = async (event) => {
       },
     );
 
-    const res = await new Promise((resolve, reject) => {
+    const { svg } = await new Promise((resolve, reject) => {
       let trace = new potrace.Potrace();
       trace.setParameters(potraceOptions);
 
@@ -51,14 +49,24 @@ exports.handler = async (event) => {
       });
     });
 
+    const canvas = await canvasBuilder({
+      width: canvasOptions.width,
+      height: canvasOptions.height,
+    });
+
+    const canvasBuffer = await canvas.getCanvasBuffer(svg);
+
+    console.log('canvas buffer ', canvasBuffer);
     await s3FileStore.uploadFile({
       key: `converted/${fileName}`,
       file: {
-        toBuffer: async () => Buffer.from(res.svg, 'utf-8'),
+        toBuffer: async () => canvasBuffer,
         mimetype: 'image/svg+xml',
         encoding: 'utf-8',
       },
     });
+
+    await canvas.closeBrowser();
 
     return fileName;
   } catch (e) {
