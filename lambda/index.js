@@ -3,7 +3,7 @@
 const { Jimp } = require('jimp');
 const potrace = require('potrace');
 const { S3FileStore } = require('../src/FileProccessor');
-const { canvasBuilder } = require('./src/Puppeteer');
+const { generateCanvasSVG } = require('./tools/svg');
 
 exports.handler = async (event) => {
   try {
@@ -34,7 +34,7 @@ exports.handler = async (event) => {
       },
     );
 
-    const { svg } = await new Promise((resolve, reject) => {
+    const { path } = await new Promise((resolve, reject) => {
       let trace = new potrace.Potrace();
       trace.setParameters(potraceOptions);
 
@@ -49,14 +49,14 @@ exports.handler = async (event) => {
       });
     });
 
-    const canvas = await canvasBuilder({
+    const canvas = await generateCanvasSVG({
       width: canvasOptions.width,
       height: canvasOptions.height,
+      tracedSVG: path,
+      geometries: [],
+      text: [],
     });
-
-    const canvasBuffer = await canvas.getCanvasBuffer(svg);
-
-    console.log('canvas buffer ', canvasBuffer);
+    const canvasBuffer = Buffer.from(canvas, 'utf-8');
     await s3FileStore.uploadFile({
       key: `converted/${fileName}`,
       file: {
@@ -65,8 +65,6 @@ exports.handler = async (event) => {
         encoding: 'utf-8',
       },
     });
-
-    await canvas.closeBrowser();
 
     return fileName;
   } catch (e) {

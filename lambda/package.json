@@ -2,6 +2,8 @@
   "name": "lambda",
   "version": "1.0.0",
   "main": "index.js",
+  "directories": {},
+  "root":"./",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "copy:parent-resources": "rsync -avm --include='src/***' --include='utils/***' --include='package.json' --exclude='*' ../ dist",
@@ -14,10 +16,7 @@
   "license": "ISC",
   "description": "",
   "dependencies": {
-    "@sparticuz/chromium": "^131.0.0",
     "jimp": "^1.6.0",
-    "potrace": "^2.1.8",
-    "puppeteer": "^23.8.0",
-    "puppeteer-core": "^23.8.0"
+    "potrace": "^2.1.8"
   }
 }

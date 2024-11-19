@@ -1,0 +1,6 @@
+# node_modules
+*.log
+*.ts
+*.env
+.git
+.cache
