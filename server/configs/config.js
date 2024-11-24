@@ -24,6 +24,14 @@ module.exports = fp(
           accessKeyId: fastify.secrets.AWS_ACCESS_KEY,
         },
       },
+      lambda:{
+        // endpoint: fastify.secrets.AWS_LAMBDA_URL,
+        region: fastify.secrets.AWS_REGION,
+        credentials: {
+          secretAccessKey: fastify.secrets.AWS_SECRET_ACCESS_KEY,
+          accessKeyId: fastify.secrets.AWS_ACCESS_KEY,
+        },
+      }
     });
   },
   { name: 'application-config' },

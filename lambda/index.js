@@ -3,16 +3,14 @@
 const { Jimp } = require('jimp');
 const potrace = require('potrace');
 const { S3FileStore } = require('../src/FileProccessor');
-const { generateCanvasSVG } = require('./tools/svg');
 
 exports.handler = async (event) => {
   try {
-    let parsedBody =
-      typeof event.body === 'string' ? JSON.parse(event.body) : event;
+    console.log('Passed event ', event);
 
-    const { fileName, potraceOptions, canvasOptions } = parsedBody;
+    const { filename, potraceOptions } = event;
 
-    if (!fileName) throw new Error('fileName is required');
+    if (!filename) throw new Error('filename is required');
     const bucketName = 'converter-bucket';
     const options = {
       region: process.env.AWS_PERSONAL_REGION,
@@ -25,7 +23,7 @@ exports.handler = async (event) => {
     const s3FileStore = new S3FileStore({ bucketName, options });
 
     const fileBuffer = await s3FileStore.getFile({
-      key: `origins/${fileName}`,
+      key: `origins/${filename}`,
     });
 
     const processedImageBuffer = await Jimp.fromBuffer(fileBuffer).then(
@@ -34,7 +32,7 @@ exports.handler = async (event) => {
       },
     );
 
-    const { path } = await new Promise((resolve, reject) => {
+    const { svg } = await new Promise((resolve, reject) => {
       let trace = new potrace.Potrace();
       trace.setParameters(potraceOptions);
 
@@ -49,24 +47,18 @@ exports.handler = async (event) => {
       });
     });
 
-    const canvas = await generateCanvasSVG({
-      width: canvasOptions.width,
-      height: canvasOptions.height,
-      tracedSVG: path,
-      geometries: [],
-      text: [],
-    });
-    const canvasBuffer = Buffer.from(canvas, 'utf-8');
     await s3FileStore.uploadFile({
-      key: `converted/${fileName}`,
+      key: `converted/${filename}`,
       file: {
-        toBuffer: async () => canvasBuffer,
+        toBuffer: async () => Buffer.from(svg, 'utf-8'),
         mimetype: 'image/svg+xml',
         encoding: 'utf-8',
       },
     });
 
-    return fileName;
+    console.log("File tracing finished")
+
+    return filename;
   } catch (e) {
     let statusCode = 500;
     let errorMessage = 'Enternal error';

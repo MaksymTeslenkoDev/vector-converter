@@ -8,6 +8,6 @@
     "target": "esnext",
     "baseUrl": "./"
   },
-  "include": ["**/*.js", "**/*.d.ts"],
+  "include": ["**/*.d.ts"],
   "exclude": ["**/*.json"]
 }

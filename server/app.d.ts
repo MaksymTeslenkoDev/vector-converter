@@ -8,6 +8,7 @@ import {
   DeleteObjectCommandOutput,
 } from '@aws-sdk/client-s3';
 import { MultipartFile } from '@fastify/multipart';
+import { LambdaClient, LambdaClientConfig } from '@aws-sdk/client-lambda';
 
 // Interface for the basic file storage provider
 export interface FileStore {
@@ -52,13 +53,16 @@ export interface MultipartFileProcessor extends FileProcessor<FileStore> {
   validateFile(filename: string): boolean;
 }
 
+export interface AppOptions {
+  mysql: import('@fastify/mysql').FastifyMySQLOptions;
+  s3: S3ClientConfig;
+  lambda: LambdaClientConfig;
+}
+
 // Fastify Instance Extension
 declare module 'fastify' {
   interface FastifyInstance {
-    config: {
-      mysql: import('@fastify/mysql').FastifyMySQLOptions;
-      s3: S3ClientConfig;
-    };
+    config: AppOptions;
     mysql: MySQLPool;
     secrets: {
       PORT: number;
@@ -71,18 +75,15 @@ declare module 'fastify' {
       AWS_ACCESS_KEY: string;
       AWS_SECRET_ACCESS_KEY: string;
       AWS_REGION: string;
+      AWS_LAMBDA_URL: string;
     };
+    lambda: LambdaClient;
     s3DataSource: MultipartFileProcessor; // Typed s3DataSource as MultipartFileProcessor
   }
 
   interface FastifyRequest {
     multipartData?: MultipartFile;
   }
-}
-
-export interface AppOptions {
-  mysql: import('@fastify/mysql').FastifyMySQLOptions;
-  s3: S3ClientConfig;
 }
 
 declare function migrate(params: {

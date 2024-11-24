@@ -1,0 +1,11 @@
+{
+  "type": "object",
+  "$id": "schema:convert:params",
+  "required": ["filename"],
+  "additionalProperties": false,
+  "properties": {
+    "filename": {
+      "type": "string"
+    }
+  }
+}
